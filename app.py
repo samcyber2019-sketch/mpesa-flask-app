@@ -1,64 +1,37 @@
 from flask import Flask, request, jsonify, render_template
-import requests
-from requests.auth import HTTPBasicAuth
-import base64
-from datetime import datetime
+from stk_push import stk_push
+import json
 
 app = Flask(__name__)
 
-# Credentials and details
-consumer_key = "eKOo4k8HfEnMqoAFrIMon7lAj9OayusAhSBkYAKxSyh0GjFH"
-consumer_secret = "GlAwDvRDHgFJyHPMp9aJ0VHq5ww9uOx0v2wUJEHo4KBL2C3pR9uLICAVBNYkvYIG"
-business_short_code = "3560929"
-passkey = "451e31d5fa3ffc9b2d989ef21641df64ac8f7cdff9582b6022f6a1c35527ef0f"
-callback_url = "https://5320980d6a60.ngrok-free.app/callback"  # Your current ngrok URL
-
-def get_access_token():
-    api_url = "https://api.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
-    response = requests.get(api_url, auth=HTTPBasicAuth(consumer_key, consumer_secret))
-    return response.json()["access_token"]
-
-@app.route('/cashier')
-def cashier():
+# ✅ Homepage route
+@app.route('/')
+def home():
     return render_template('cashier.html')
 
+
+# ✅ STK Push request route
 @app.route('/stkpush', methods=['POST'])
-def stkpush():
+def stkpush_route():
     data = request.get_json()
-    phone = data['phone']
-    amount = data['amount']
+    phone = data.get("phone")
+    amount = data.get("amount")
 
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    password_str = business_short_code + passkey + timestamp
-    password = base64.b64encode(password_str.encode()).decode()
+    if not phone or not amount:
+        return jsonify({"error": "Phone number and amount are required"}), 400
 
-    access_token = get_access_token()
-    api_url = "https://api.safaricom.co.ke/mpesa/stkpush/v1/processrequest"
-    headers = {"Authorization": f"Bearer {access_token}"}
-    payload = {
-        "BusinessShortCode": business_short_code,
-        "Password": password,
-        "Timestamp": timestamp,
-        "TransactionType": "CustomerBuyGoodsOnline",
-        "Amount": amount,
-        "PartyA": phone,
-        "PartyB": "5662884",  # Your till number
-        "PhoneNumber": phone,
-        "CallBackURL": callback_url,
-        "AccountReference": "TestPayment",
-        "TransactionDesc": "Payment for goods"
-    }
-    response = requests.post(api_url, json=payload, headers=headers)
-    return jsonify(response.json())
+    response = stk_push(phone, amount)
+    return jsonify(response)
 
+
+# ✅ Callback route (for M-PESA response)
 @app.route('/callback', methods=['POST'])
-def callback():
+def mpesa_callback():
     data = request.get_json()
-    print("Callback received:", data)
+    print("Callback received:", json.dumps(data, indent=4))
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
 
-import os
 
+# ✅ This is needed for Render to run correctly
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+    app.run(host='0.0.0.0', port=10000)
