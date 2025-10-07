@@ -54,8 +54,8 @@ def stkpush():
 @app.route('/callback', methods=['POST'])
 def callback():
     data = request.get_json()
-    print("STK Callback received:", data)
-    return jsonify({"Result": "Callback received successfully"})
+    print("Callback received:", data)
+    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
 
 if __name__ == '__main__':
     app.run(debug=True)

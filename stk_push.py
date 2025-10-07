@@ -28,7 +28,7 @@ def stkpush():
         "PartyA": phone,
         "PartyB": shortcode,
         "PhoneNumber": phone,
-        "CallBackURL": "https://mydomain.com/callback",
+        "CallBackURL": "https://7c417dcf0ce5.ngrok-free.app/callback",
         "AccountReference": "Test",
         "TransactionDesc": "Payment"
     }
