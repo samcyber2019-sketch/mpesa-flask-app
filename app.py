@@ -1,25 +1,22 @@
-import os
 from flask import Flask, request, jsonify, render_template
 from stk_push import stk_push
+import os
 import json
 
 app = Flask(__name__)
 
-# ================= Homepage =================
+# =======================
+# Homepage route
+# =======================
 @app.route('/')
 def home():
-    """
-    Render the cashier page where users can enter phone number and amount.
-    """
     return render_template('cashier.html')
 
-
-# ================= STK Push Request =================
+# =======================
+# STK Push route
+# =======================
 @app.route('/stkpush', methods=['POST'])
 def stkpush_route():
-    """
-    Receive phone number and amount from frontend and initiate STK push.
-    """
     data = request.get_json()
     phone = data.get("phone")
     amount = data.get("amount")
@@ -33,20 +30,18 @@ def stkpush_route():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
-# ================= Callback Endpoint =================
+# =======================
+# Callback route (M-PESA response)
+# =======================
 @app.route('/callback', methods=['POST'])
 def mpesa_callback():
-    """
-    This route receives M-PESA transaction responses.
-    """
     data = request.get_json()
-    print("Callback received:", json.dumps(data, indent=4))
+    print("Callback received:", json.dumps(data, indent=4))  # Logs in Render
     return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
 
-
-# ================= Run App =================
+# =======================
+# Render requires this
+# =======================
 if __name__ == "__main__":
-    # Render assigns the port via environment variable
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
