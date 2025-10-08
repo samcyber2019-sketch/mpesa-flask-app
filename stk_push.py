@@ -3,26 +3,29 @@ from requests.auth import HTTPBasicAuth
 from datetime import datetime
 import base64
 
-# M-PESA credentials and callback URL
+# ================= Live M-PESA Credentials =================
 BUSINESS_SHORT_CODE = "3560929"
 PASSKEY = "451e31d5fa3ffc9b2d989ef21641df64ac8f7cdff9582b6022f6a1c35527ef0f"
 CONSUMER_KEY = "eKOo4k8HfEnMqoAFrIMon7lAj9OayusAhSBkYAKxSyh0GjFH"
 CONSUMER_SECRET = "GlAwDvRDHgFJyHPMp9aJ0VHq5ww9uOx0v2wUJEHo4KBL2C3pR9uLICAVBNYkvYIG"
 CALLBACK_URL = "https://mpesa-flask-app.onrender.com/callback"
-MPESA_ENV = "sandbox"  # change to "production" when live
+
+# ================= Environment =================
+MPESA_ENV = "production"  # Make sure this is 'production' for live
 
 if MPESA_ENV == "sandbox":
     BASE_URL = "https://sandbox.safaricom.co.ke"
 else:
     BASE_URL = "https://api.safaricom.co.ke"
 
+# ================= Get Access Token =================
 def get_access_token():
     url = f"{BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
     response = requests.get(url, auth=HTTPBasicAuth(CONSUMER_KEY, CONSUMER_SECRET))
     response.raise_for_status()
-    access_token = response.json().get("access_token")
-    return access_token
+    return response.json().get("access_token")
 
+# ================= STK Push =================
 def stk_push(phone_number, amount):
     access_token = get_access_token()
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
