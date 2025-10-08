@@ -1,21 +1,12 @@
-from flask import Flask, request, jsonify, render_template
-from stk_push import stk_push
-import json
-import os
-
-app = Flask(__name__)
-
-# ✅ Homepage route
-@app.route('/')
-def home():
-    return render_template('cashier.html')
-
-# ✅ STK Push request route
 @app.route('/stkpush', methods=['POST'])
 def stkpush_route():
     data = request.get_json()
     phone = data.get("phone")
     amount = data.get("amount")
+
+    # ✅ Automatically fix phone format
+    if phone.startswith("07"):
+        phone = "254" + phone[1:]
 
     if not phone or not amount:
         return jsonify({"error": "Phone number and amount are required"}), 400
