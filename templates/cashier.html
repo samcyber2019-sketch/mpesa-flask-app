@@ -1,39 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cave Grill Payment</title>
-    <script>
-        async function makePayment() {
-            const phone = document.getElementById("phone").value;
-            const amount = document.getElementById("amount").value;
-
-            if(!phone || !amount) {
-                alert("Phone number and amount are required");
-                return;
-            }
-
-            const response = await fetch("/stkpush", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ phone, amount })
-            });
-
-            const data = await response.json();
-            console.log(data);
-            alert(JSON.stringify(data, null, 2));
-        }
-    </script>
+  <meta charset="UTF-8">
+  <title>SAM-CYBER Payment Portal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 320px;
+    }
+    h2 { color: #1a1a1a; }
+    input {
+      width: 90%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+    button {
+      background-color: #0f9d58;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0b7d46;
+    }
+    .message {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
-    <h1>Cave Grill Payment</h1>
-    <label for="phone">Phone Number:</label>
-    <input type="text" id="phone" placeholder="2547XXXXXXXX"><br><br>
+  <div class="container">
+    <h2>SAM-CYBER PAYMENTS</h2>
+    <input type="text" id="phone" placeholder="Enter Phone Number (254...)" />
+    <input type="number" id="amount" placeholder="Enter Amount" />
+    <button onclick="sendSTK()">Pay Now</button>
+    <div class="message" id="message"></div>
+  </div>
 
-    <label for="amount">Amount:</label>
-    <input type="number" id="amount" placeholder="Enter Amount"><br><br>
+  <script>
+    async function sendSTK() {
+      const phone = document.getElementById('phone').value.trim();
+      const amount = document.getElementById('amount').value.trim();
+      const messageBox = document.getElementById('message');
 
-    <button onclick="makePayment()">Pay Now</button>
+      if (!phone || !amount) {
+        messageBox.innerHTML = "Please enter both phone and amount!";
+        messageBox.style.color = "red";
+        return;
+      }
+
+      messageBox.innerHTML = "Sending payment request...";
+      messageBox.style.color = "#333";
+
+      try {
+        const response = await fetch("/stkpush", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone, amount })
+        });
+
+        const result = await response.json();
+
+        if (result.ResponseDescription) {
+          messageBox.innerHTML = result.ResponseDescription;
+          messageBox.style.color = "green";
+        } else {
+          messageBox.innerHTML = "Transaction failed. Try again.";
+          messageBox.style.color = "red";
+        }
+      } catch (error) {
+        messageBox.innerHTML = "Error connecting to payment service.";
+        messageBox.style.color = "red";
+      }
+    }
+  </script>
 </body>
 </html>
