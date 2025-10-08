@@ -1,18 +1,35 @@
-from flask import Flask, request, jsonify
-from cashier import cashier_bp
+from flask import Flask, request, jsonify, render_template
+from stk_push import stk_push
+import json
+import os
 
 app = Flask(__name__)
-app.register_blueprint(cashier_bp)
 
-@app.route("/")
+# ✅ Homepage route
+@app.route('/')
 def home():
-    return "SAMEX ICT CENTRE - M-PESA Payment Gateway Active"
+    return render_template('cashier.html')
 
-@app.route("/callback", methods=["POST"])
-def callback():
+# ✅ STK Push request route
+@app.route('/stkpush', methods=['POST'])
+def stkpush_route():
     data = request.get_json()
-    print("M-PESA CALLBACK:", data)
-    return jsonify({"ResultCode": 0, "ResultDesc": "Callback received successfully"})
+    phone = data.get("phone")
+    amount = data.get("amount")
 
+    if not phone or not amount:
+        return jsonify({"error": "Phone number and amount are required"}), 400
+
+    response = stk_push(phone, amount)
+    return jsonify(response)
+
+# ✅ Callback route (for M-PESA response)
+@app.route('/callback', methods=['POST'])
+def mpesa_callback():
+    data = request.get_json()
+    print("Callback received:", json.dumps(data, indent=4))
+    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
+
+# ✅ For Render hosting
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
